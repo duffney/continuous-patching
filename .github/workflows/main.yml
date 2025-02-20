@@ -4,6 +4,8 @@ on: push
 jobs:
   configure:
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
