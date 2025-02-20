@@ -89,7 +89,6 @@ func main() {
 			log.Fatal(err)
 		}
 
-		//TODO: store tags in a map with image name as key
 		for _, t := range tags {
 			for _, tag := range t.Metadata.Container.Tags {
 				if !strings.Contains(tag, ".sig") {

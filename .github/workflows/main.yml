@@ -14,7 +14,6 @@ jobs:
     steps:
       - name: Checkout to repository
         uses: actions/checkout@v3
-      # list all images with bin
       - name: Generate image list
         run: ./listImages
       - name: Set matrix data
@@ -23,9 +22,67 @@ jobs:
 
   print:
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: write
     needs: configure
     strategy:
       matrix:
         images: ${{ fromJson(needs.configure.outputs.matrix) }}
     steps:
-      - run: echo ${{ matrix.images}}
+      # - run: echo ${{ matrix.images}}
+      - name: Generate Trivy Report
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: "image"
+          format: "json"
+          output: "report.json"
+          ignore-unfixed: true
+          vuln-type: "os"
+          image-ref: ${{ matrix.images }}
+
+      - name: Check vulnerability count
+        id: vuln_count
+        run: |
+          report_file="report.json"
+          vuln_count=$(jq 'if .Results then [.Results[] | select(.Class=="os-pkgs" and .Vulnerabilities!=null) | .Vulnerabilities[]] | length else 0 end' "$report_file")
+          echo "vuln_count=$vuln_count" >> $GITHUB_OUTPUT
+
+      - name: Create patch tag
+        id: patch_tag
+        run: |
+          imageName=$(echo ${{ matrix.images }} | cut -d ':' -f1)
+          current_tag=$(echo ${{ matrix.images }} | cut -d ':' -f2)
+
+          if [[ $current_tag == *-[0-9] ]]; then
+              numeric_tag=$(echo "$current_tag" | awk -F'-' '{print $NF}')
+              non_numeric_tag=$(echo "$current_tag" | sed "s#-$numeric_tag##g")
+              incremented_tag=$((numeric_tag+1))
+              new_tag="$non_numeric_tag-$incremented_tag"
+          else
+              new_tag="$current_tag-1"
+          fi
+
+          echo "tag=$new_tag" >> $GITHUB_OUTPUT
+
+      - name: Run copa action
+        uses: project-copacetic/copa-action@v1.2.1
+        with:
+          image: ${{ matrix.images }}
+          image-report: "report.json"
+          patched-tag: ${{ steps.patch_tag.outputs.tag}}
+
+      - name: Login to GHCR
+        if: steps.copa.conclusion == 'success'
+        id: login
+        uses: docker/login-action@3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push patched image
+        if: steps.login.conclusion == 'success'
+        run: |
+          docker tag ${{ steps.copa.outputs.patched-image }} ghcr.io/project-copacetic/copa-action/test/${{ steps.copa.outputs.patched-image }}
+          docker push ghcr.io/duffney/${{ steps.copa.outputs.patched-image }}
