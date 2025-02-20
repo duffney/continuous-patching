@@ -64,15 +64,16 @@ jobs:
               new_tag="$current_tag-1"
           fi
 
-          # echo "tag=$new_tag" >> $GITHUB_OUTPUT
-          echo "patchedImageName=$imageName:$new_tag" >> $GITHUB_OUTPUT
+          echo "tag=$new_tag" >> $GITHUB_OUTPUT
+          echo "imageName=$imageName" >> $GITHUB_OUTPUT
 
       - name: Run copa action
+        id: copa
         uses: project-copacetic/copa-action@v1.2.1
         with:
           image: ${{ env.REGISTRY}}/${{ matrix.images }}
           image-report: "report.json"
-          patched-tag: ${{ env.REGISTRY}}/${{ steps.patch_tag.outputs.patchedImageName }}
+          patched-tag: ${{ steps.patch_tag.outputs.tag }}
 
       - name: Login to GHCR
         if: steps.copa.conclusion == 'success'
@@ -86,5 +87,4 @@ jobs:
       - name: Push patched image
         if: steps.login.conclusion == 'success'
         run: |
-          docker tag ${{ steps.copa.outputs.patched-image }} ghcr.io/project-copacetic/copa-action/test/${{ steps.copa.outputs.patched-image }}
           docker push ${{ env.REGISTRY}}/${{ steps.copa.outputs.patched-image }}
