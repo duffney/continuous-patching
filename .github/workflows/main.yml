@@ -1,6 +1,9 @@
 name: main
 on: push
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN}}
+
 jobs:
   configure:
     runs-on: ubuntu-latest
