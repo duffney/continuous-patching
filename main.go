@@ -1,6 +1,7 @@
 // List all images and tags from GitHub Container Registry
 // TODO: Add pagination
 // TODO: Add `latest` tag support for only the more recent image
+// TODO: Append registry name to image name
 package main
 
 import (
