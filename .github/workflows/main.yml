@@ -88,4 +88,4 @@ jobs:
       - name: Push patched image
         if: steps.login.conclusion == 'success'
         run: |
-          docker push ${{ env.REGISTRY}}/${{ steps.copa.outputs.patched-image }}
+          docker push ${{ steps.copa.outputs.patched-image }}
