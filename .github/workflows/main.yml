@@ -28,6 +28,7 @@ jobs:
       contents: write
     needs: configure
     strategy:
+      fail-fast: false
       matrix:
         images: ${{ fromJson(needs.configure.outputs.matrix) }}
     steps:
