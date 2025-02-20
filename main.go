@@ -56,7 +56,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	images := make(map[string][]string)
+	images := []string{}
 	for _, p := range packages {
 		url := fmt.Sprintf("https://api.github.com/users/duffney/packages/%s/%s/versions", p.PackageType, p.Name)
 		req, err := http.NewRequest("GET", url, nil)
@@ -93,10 +93,7 @@ func main() {
 		for _, t := range tags {
 			for _, tag := range t.Metadata.Container.Tags {
 				if !strings.Contains(tag, ".sig") {
-					if _, ok := images[p.Name]; !ok {
-						images[p.Name] = []string{}
-					}
-					images[p.Name] = append(images[p.Name], tag)
+					images = append(images, fmt.Sprintf("%s:%s", p.Name, tag))
 				}
 			}
 		}
@@ -106,7 +103,6 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(string(output))
-	//output to images.json
 	os.NewFile(0, "images.json")
 	os.WriteFile("images.json", output, 0644)
 }
