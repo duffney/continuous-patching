@@ -4,6 +4,8 @@ This repository automates the process of scanning and patching container images 
 
 <!-- image of actions running -->
 
+![Actions](imgs/actions.png)
+
 ## How to use this repository
 
 ### Create a new repository from the template
