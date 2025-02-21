@@ -103,6 +103,6 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(string(output))
-	os.NewFile(0, "images.json")
-	os.WriteFile("images.json", output, 0644)
+	os.NewFile(0, "matrix.json")
+	os.WriteFile("matrix.json", output, 0644)
 }

@@ -19,7 +19,7 @@ jobs:
         run: ./listImages
       - name: Set matrix data
         id: set-matrix
-        run: echo "matrix=$(jq -c . < ./images.json)" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
 
   patch:
     runs-on: ubuntu-latest
