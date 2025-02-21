@@ -29,7 +29,7 @@ This repository automates the process of scanning and patching container images 
 ### Run the workflow
 
 1. Go to the repository you created from the template and click on the `Actions` tab.
-2. Click on the `Continuous-patching` workflow and then click on the `Run workflow` button.
+2. Click on the `continuous-patch` workflow and then click on the `Run workflow` button.
 
 ## How it works:
 

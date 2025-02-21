@@ -1,4 +1,4 @@
-name: main
+name: continuous-patch
 on: workflow_dispatch
 
 env:
@@ -26,11 +26,11 @@ jobs:
     permissions:
       packages: read
       contents: write
-    needs: configure
+    needs: setup
     strategy:
       fail-fast: false
       matrix:
-        images: ${{ fromJson(needs.configure.outputs.matrix) }}
+        images: ${{ fromJson(needs.setup.outputs.matrix) }}
     steps:
       # - run: echo ${{ matrix.images}}
       - name: Generate Trivy Report
