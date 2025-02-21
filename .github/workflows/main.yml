@@ -1,9 +1,9 @@
 name: main
-on: push
+on: workflow_dispatch
 
 env:
   GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN}}
-  REGISTRY: ghcr.io/duffney
+  REGISTRY: ${{ secrets.REGISTRY }}
 
 jobs:
   setup:
