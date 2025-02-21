@@ -6,7 +6,7 @@ env:
   REGISTRY: ghcr.io/duffney
 
 jobs:
-  configure:
+  setup:
     runs-on: ubuntu-latest
     permissions:
       packages: read
@@ -21,7 +21,7 @@ jobs:
         id: set-matrix
         run: echo "matrix=$(jq -c . < ./images.json)" >> $GITHUB_OUTPUT
 
-  print:
+  patch:
     runs-on: ubuntu-latest
     permissions:
       packages: read
@@ -69,6 +69,7 @@ jobs:
           echo "imageName=$imageName" >> $GITHUB_OUTPUT
 
       - name: Run copa action
+        if: steps.vuln_count.outputs.vuln_count != '0'
         id: copa
         uses: project-copacetic/copa-action@v1.2.1
         with:
