@@ -1,6 +1,5 @@
 // List all images and tags from GitHub Container Registry
 // TODO: Add pagination
-// TODO: Add `latest` tag support for only the more recent image
 // TODO: Append registry name to image name
 package main
 
@@ -11,19 +10,23 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 )
-
-//TODO: Add type to hold image and tags of hosted images
-//TODO: Output images with all tag versions on separate lines
-
-const url = "https://api.github.com/users/duffney/packages?package_type=container"
 
 func main() {
 	token := os.Getenv("GITHUB_TOKEN")
 	if token == "" {
-		log.Fatal("GITHUB_TOKEN is required")
+		log.Fatal("env:GITHUB_TOKEN is required")
 	}
+
+	userName := os.Getenv("GITHUB_USERNAME")
+	if userName == "" {
+		log.Fatal("env:GITHUB_USERNAME is required")
+	}
+
+	var url = "https://api.github.com/users/" + userName + "/packages?package_type=container"
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -50,7 +53,6 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// fmt.Println(string(body))
 	var packages []Package
 	err = json.Unmarshal(body, &packages)
 	if err != nil {
@@ -58,8 +60,9 @@ func main() {
 	}
 
 	images := []string{}
+
 	for _, p := range packages {
-		url := fmt.Sprintf("https://api.github.com/users/duffney/packages/%s/%s/versions", p.PackageType, p.Name)
+		url := fmt.Sprintf("https://api.github.com/users/%s/packages/%s/%s/versions", userName, p.PackageType, p.Name)
 		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
 			log.Fatal(err)
@@ -98,11 +101,50 @@ func main() {
 			}
 		}
 	}
-	output, err := json.MarshalIndent(images, "", "  ")
+
+	data := make(map[string]int)
+
+	for _, image := range images {
+		name, tag, _ := strings.Cut(image, ":")
+
+		if regexp.MustCompile(`-\d+$`).MatchString(tag) {
+			patchIndex := strings.LastIndex(tag, "-")
+			patchCounter, _ := strconv.Atoi(tag[patchIndex+1:])
+			imageWithoutPatch := name + ":" + tag[:patchIndex]
+
+			if value, ok := data[imageWithoutPatch]; ok {
+				if value < patchCounter {
+					data[imageWithoutPatch] = patchCounter
+				}
+				continue
+			}
+
+			data[imageWithoutPatch] = patchCounter
+			continue
+		}
+
+		if _, ok := data[image]; ok {
+			continue
+		} else {
+			data[image] = 0
+		}
+
+	}
+
+	output := []string{}
+	for k, v := range data {
+		s := fmt.Sprintf("%s-%d", k, v)
+		if v == 0 {
+			output = append(output, k)
+			continue
+		}
+		output = append(output, s)
+	}
+	fmt.Println(output)
+	jsonOutput, err := json.MarshalIndent(output, "", "  ")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(string(output))
 	os.NewFile(0, "matrix.json")
-	os.WriteFile("matrix.json", output, 0644)
+	os.WriteFile("matrix.json", jsonOutput, 0644)
 }

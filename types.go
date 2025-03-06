@@ -53,13 +53,3 @@ type Metadata struct {
 		Tags []string `json:"tags"`
 	} `json:"container"`
 }
-
-// "metadata": {
-//       "package_type": "container",
-//       "container": {
-//         "tags": [
-//           "latest"
-//         ]
-//       }
-//     }
-//   },
