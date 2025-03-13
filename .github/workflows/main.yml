@@ -2,8 +2,7 @@ name: continuous-patch
 on: workflow_dispatch
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN}}
-  REGISTRY: ${{ secrets.REGISTRY }}
+  REGISTRY: "ghcr.io/${{ github.actor }}"
 
 jobs:
   setup:
@@ -15,8 +14,16 @@ jobs:
     steps:
       - name: Checkout to repository
         uses: actions/checkout@v3
+      - name: Login to GHCR
+        id: login
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
       - name: Generate image list
-        run: ./listImages
+        run: |
+          ./contagious "${{ env.REGISTRY }}" -l -o matrix.json
       - name: Set matrix data
         id: set-matrix
         run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
@@ -32,7 +39,6 @@ jobs:
       matrix:
         images: ${{ fromJson(needs.setup.outputs.matrix) }}
     steps:
-      # - run: echo ${{ matrix.images}}
       - name: Generate Trivy Report
         uses: aquasecurity/trivy-action@0.29.0
         with:
@@ -80,7 +86,7 @@ jobs:
       - name: Login to GHCR
         if: steps.copa.conclusion == 'success'
         id: login
-        uses: docker/login-action@3.3.0
+        uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
