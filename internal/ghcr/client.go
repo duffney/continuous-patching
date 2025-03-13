@@ -10,15 +10,20 @@ import (
 	"strings"
 )
 
-func ListImages(username, token string) ([]string, error) {
+func ListImages(username string) ([]string, error) {
 	var url = "https://api.github.com/users/" + username + "/packages?package_type=container"
+	token := GetAuthToken()
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
+	if strings.HasPrefix(token, "ghp_") {
+		req.Header.Set("Authorization", "Bearer "+token)
+	} else {
+		// If it's a username/password or another format
+		req.Header.Set("Authorization", "token "+token)
+	}
 	req.Header.Set("Accept", "application/vnd.github+json")
 	req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 
@@ -53,7 +58,11 @@ func ListImages(username, token string) ([]string, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		req.Header.Set("Authorization", "Bearer "+token)
+		if strings.HasPrefix(token, "ghp_") {
+			req.Header.Set("Authorization", "Bearer "+token)
+		} else {
+			req.Header.Set("Authorization", "token "+token)
+		}
 		req.Header.Set("Accept", "application/vnd.github+json")
 		req.Header.Set("X-GitHub-Api-Version", "2022-11-28")
 

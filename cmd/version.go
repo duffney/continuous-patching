@@ -13,6 +13,6 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number",
 	Long:  `Displays the current version of the healthcheck CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("copamatic version %s\n", Version)
+		fmt.Printf("Cotagious version %s\n", Version)
 	},
 }

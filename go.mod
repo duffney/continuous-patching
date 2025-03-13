@@ -1,4 +1,4 @@
-module github.com/duffney/copamatic
+module github.com/duffney/contagious
 
 go 1.22.6
 

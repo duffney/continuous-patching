@@ -4,7 +4,7 @@
 package main
 
 import (
-	"github.com/duffney/copamatic/cmd"
+	"github.com/duffney/contagious/cmd"
 )
 
 func main() {
