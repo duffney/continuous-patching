@@ -1,5 +1,9 @@
 name: testing matrix
-on: workflow_dispatch
+on: 
+  push:
+    branches:
+      - 'contagious'
+  workflow_dispatch: 
 
 env:
   REGISTRY: "ghcr.io/${{ github.actor }}"
