@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Generate image list
         run: |
-          ./contagious "${{ env.REGISTRY }}" -l -o matrix.json
+          ./contagious list "${{ env.REGISTRY }}" -o matrix.json
       - name: Set matrix data
         id: set-matrix
         run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
