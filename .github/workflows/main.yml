@@ -23,7 +23,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
       - name: Contagious
         id: contagious
-        uses: github.com/duffney/contagious-action@main
+        uses: duffney/contagious-action@main
         with:
           contagious_version: "0.1.2"
           registry: ${{ env.REGISTRY }}
