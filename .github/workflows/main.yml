@@ -25,10 +25,10 @@ jobs:
         id: contagious
         uses: duffney/contagious-action@main
         with:
-          contagious_version: "0.1.0"
+          contagious_version: "0.1.1"
           registry: ${{ env.REGISTRY }}
       - name: Display images
-        run: echo ${{ steps.contagious.outcome.images }}
+        run: echo ${{ steps.contagious.outputs.images }}
   patch:
     runs-on: ubuntu-latest
     permissions:
