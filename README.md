@@ -2,8 +2,6 @@
 
 This repository automates the process of scanning and patching container images from GitHub Container Registry (GHCR). The workflow ensures that images are continuously checked for vulnerabilities and updated when necessary.
 
-<!-- image of actions running -->
-
 ![Actions](imgs/actions.png)
 
 ## How to use this repository
@@ -35,4 +33,4 @@ This repository automates the process of scanning and patching container images 
 
 ## How it works:
 
-![Flowchart](imgs/flowchart.png)
+![Workflow](imgs/workflow.png)
