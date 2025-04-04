@@ -1,9 +1,12 @@
 name: continuous-patch
 on: workflow_dispatch
+# Cron Trigger 4:45 daily
+# on:
+#   schedule:
+#     - cron: "45 4 * * *"
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN}}
-  REGISTRY: ${{ secrets.REGISTRY }}
+  REGISTRY: "ghcr.io/${{ github.actor }}"
 
 jobs:
   setup:
@@ -11,16 +14,26 @@ jobs:
     permissions:
       packages: read
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      images: ${{ steps.contagious.outputs.images }}
     steps:
       - name: Checkout to repository
         uses: actions/checkout@v3
-      - name: Generate image list
-        run: ./listImages
-      - name: Set matrix data
-        id: set-matrix
-        run: echo "matrix=$(jq -c . < ./matrix.json)" >> $GITHUB_OUTPUT
-
+      - name: Login to GHCR
+        id: login
+        uses: docker/login-action@v3.3.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+      - name: Contagious
+        id: contagious
+        uses: duffney/contagious-action@main
+        with:
+          contagious_version: "0.1.2"
+          registry: ${{ env.REGISTRY }}
+      - name: Display images
+        id: display
+        run: echo ${{ steps.contagious.outputs.images }}
   patch:
     runs-on: ubuntu-latest
     permissions:
@@ -30,9 +43,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        images: ${{ fromJson(needs.setup.outputs.matrix) }}
+        include: ${{ fromJson(needs.setup.outputs.images ) }}
     steps:
-      # - run: echo ${{ matrix.images}}
       - name: Generate Trivy Report
         uses: aquasecurity/trivy-action@0.29.0
         with:
@@ -41,7 +53,7 @@ jobs:
           output: "report.json"
           ignore-unfixed: true
           vuln-type: "os"
-          image-ref: ${{ env.REGISTRY}}/${{ matrix.images }}
+          image-ref: ${{ env.REGISTRY}}/${{ matrix.image_name }}
 
       - name: Check vulnerability count
         id: vuln_count
@@ -50,37 +62,19 @@ jobs:
           vuln_count=$(jq 'if .Results then [.Results[] | select(.Class=="os-pkgs" and .Vulnerabilities!=null) | .Vulnerabilities[]] | length else 0 end' "$report_file")
           echo "vuln_count=$vuln_count" >> $GITHUB_OUTPUT
 
-      - name: Create patch tag
-        id: patch_tag
-        run: |
-          imageName=$(echo ${{ matrix.images }} | cut -d ':' -f1)
-          current_tag=$(echo ${{ matrix.images }} | cut -d ':' -f2)
-
-          if [[ $current_tag == *-[0-9] ]]; then
-              numeric_tag=$(echo "$current_tag" | awk -F'-' '{print $NF}')
-              non_numeric_tag=$(echo "$current_tag" | sed "s#-$numeric_tag##g")
-              incremented_tag=$((numeric_tag+1))
-              new_tag="$non_numeric_tag-$incremented_tag"
-          else
-              new_tag="$current_tag-1"
-          fi
-
-          echo "tag=$new_tag" >> $GITHUB_OUTPUT
-          echo "imageName=$imageName" >> $GITHUB_OUTPUT
-
       - name: Run copa action
         if: steps.vuln_count.outputs.vuln_count != '0'
         id: copa
         uses: project-copacetic/copa-action@v1.2.1
         with:
-          image: ${{ env.REGISTRY}}/${{ matrix.images }}
+          image: ${{ env.REGISTRY}}/${{ matrix.image_name }}
           image-report: "report.json"
-          patched-tag: ${{ steps.patch_tag.outputs.tag }}
+          patched-tag: ${{ matrix.next_patch_tag }}
 
       - name: Login to GHCR
         if: steps.copa.conclusion == 'success'
         id: login
-        uses: docker/login-action@3.3.0
+        uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
