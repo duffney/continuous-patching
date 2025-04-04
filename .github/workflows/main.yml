@@ -1,5 +1,9 @@
 name: continuous-patch
 on: workflow_dispatch
+# Cron Trigger 4:45 daily
+# on:
+#   schedule:
+#     - cron: "45 4 * * *"
 
 env:
   REGISTRY: "ghcr.io/${{ github.actor }}"
