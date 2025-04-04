@@ -26,6 +26,12 @@ jobs:
       #     registry: ghcr.io
       #     username: ${{ github.actor }}
       #     password: ${{ secrets.GHCR_TOKEN }}
+      - name: debug token
+        run: |
+          if [ -z "${{ secrets.GHCR_TOKEN }}" ]; then
+            echo "GHCR_TOKEN is empty"
+            exit 1
+          fi
       - name: Contagious
         id: contagious
         uses: duffney/contagious-action@main
