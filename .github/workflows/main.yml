@@ -53,7 +53,7 @@ jobs:
           output: "report.json"
           ignore-unfixed: true
           vuln-type: "os"
-          image-ref: ${{ env.REGISTRY}}/${{ matrix.current_tag }}
+          image-ref: ${{ env.REGISTRY}}/${{ matrix.image_name }}
 
       - name: Check vulnerability count
         id: vuln_count
@@ -67,9 +67,9 @@ jobs:
         id: copa
         uses: project-copacetic/copa-action@v1.2.1
         with:
-          image: ${{ env.REGISTRY}}/${{ matrix.current_tag }}
+          image: ${{ env.REGISTRY}}/${{ matrix.image_name }}
           image-report: "report.json"
-          patched-tag: ${{ matrix.next_tag }}
+          patched-tag: ${{ matrix.next_patch_tag }}
 
       - name: Login to GHCR
         if: steps.copa.conclusion == 'success'
@@ -83,4 +83,4 @@ jobs:
       - name: Push patched image
         if: steps.login.conclusion == 'success'
         run: |
-          docker push ${{ matrix.next_tag }}
+          docker push ${{ matrix.next_patch_tag }}
