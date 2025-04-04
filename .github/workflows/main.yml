@@ -31,6 +31,9 @@ jobs:
         with:
           contagious_version: "0.1.1"
           registry: ${{ env.REGISTRY }}
+      - name: Display images
+        id: display
+        run: echo ${{ steps.contagious.outputs.images }} | jq -r
   patch:
     runs-on: ubuntu-latest
     permissions:
