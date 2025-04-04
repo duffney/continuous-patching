@@ -6,8 +6,8 @@ on: workflow_dispatch
 #     - cron: "45 4 * * *"
 
 env:
+  GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN}}
   REGISTRY: "ghcr.io/${{ github.actor }}"
-  GITHUB_TOKEN: "${{ secrets.GHCR_TOKEN }}"
 
 jobs:
   setup:
