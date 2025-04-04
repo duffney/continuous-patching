@@ -83,4 +83,4 @@ jobs:
       - name: Push patched image
         if: steps.login.conclusion == 'success'
         run: |
-          docker push ${{ matrix.next_patch_tag }}
+          docker push ${{ steps.copa.outputs.patched-image }}
