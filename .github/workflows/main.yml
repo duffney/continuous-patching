@@ -65,7 +65,7 @@ jobs:
       - name: Run copa action
         if: steps.vuln_count.outputs.vuln_count != '0'
         id: copa
-        uses: project-copacetic/copa-action@v1.2.1
+        uses: project-copacetic/copa-action@7de81b0830c8a4d1edb4a63a77e65a6d7ef8dc95
         with:
           image: ${{ env.REGISTRY}}/${{ matrix.image_name }}
           image-report: "report.json"
